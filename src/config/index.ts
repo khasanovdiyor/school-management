@@ -16,6 +16,7 @@ interface iConfig {
       expiresIn: string;
     };
   };
+  isDevEnv: boolean;
 }
 
 export default (): Partial<iConfig> => ({
@@ -32,4 +33,7 @@ export default (): Partial<iConfig> => ({
     },
   },
   database: dbConfig(),
+  get isDevEnv() {
+    return this.env === 'development';
+  },
 });
