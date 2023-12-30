@@ -10,7 +10,9 @@ export const dbConfig = (): PostgresConnectionOptions => ({
   database: process.env.POSTGRES_DB,
   ssl: process.env.POSTGRES_SSL === 'true',
   entities: [join(__dirname, '../**/*.entity{.ts,.js}')],
-  synchronize: process.env.NODE_ENV === 'development' ? true : false,
+  get synchronize() {
+    return process.env.NODE_ENV === 'development' ? true : false;
+  },
   migrationsRun: false,
   migrations: [join(__dirname, '../migrations/**/*{.ts,.js}')],
 });
