@@ -6,13 +6,21 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { JwtAccessGuard } from 'src/auth/guards/jwt-access.guard';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserRole } from './enums/user-role.enum';
 
-@Controller('users')
+@UseGuards(JwtAccessGuard)
+@UseGuards(RolesGuard)
+@Roles(UserRole.Director)
+@Controller({ path: 'users', version: '1' })
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 

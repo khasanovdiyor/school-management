@@ -6,6 +6,7 @@ import { SubjectsModule } from './subjects/subjects.module';
 import { DatabaseModule } from './database/database.module';
 import { LoggerModule } from './common/logger/logger.module';
 import { UsersModule } from './users/users.module';
+import { GroupsModule } from './groups/groups.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { UsersModule } from './users/users.module';
     DatabaseModule,
     SubjectsModule,
     UsersModule,
+    GroupsModule,
   ],
   controllers: [],
   providers: [],

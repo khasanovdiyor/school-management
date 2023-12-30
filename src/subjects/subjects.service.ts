@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { PgErrorCode } from 'src/common/enums/pg-error.enum';
 import { notFoundMessage } from 'src/common/constants/notFoundMessage';
 
@@ -66,5 +66,13 @@ export class SubjectsService {
     } catch (err) {
       throw new InternalServerErrorException('Internal Server Error');
     }
+  }
+
+  async findSubjectsById(subjectIds: number[]) {
+    const subjects = await this.subjectsRepository.find({
+      where: { id: In(subjectIds) },
+    });
+
+    return subjects;
   }
 }
