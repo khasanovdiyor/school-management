@@ -10,9 +10,10 @@ import { PgErrorCode } from 'src/common/enums/pg-error.enum';
 
 import yargs = require('yargs');
 async function bootstrap() {
+  console.log(process.argv);
   const argv = yargs(hideBin(process.argv))
     .usage(
-      `Usage: npx ts-node src/scripts/create-director --firstName [string] --lastName [string] --phoneNumber [string] --password [string]`,
+      `Usage: npm run create:director -- --firstName [string] --lastName [string] --phoneNumber [string] --password [string]`,
     )
     .options({
       firstName: {
@@ -25,9 +26,9 @@ async function bootstrap() {
         describe: 'Last name',
         type: 'string',
       },
-      phoneNumber: {
+      phone: {
         demandOption: true,
-        describe: 'Email',
+        describe: 'Phone number',
         type: 'string',
       },
       password: {
@@ -43,7 +44,7 @@ async function bootstrap() {
   const createUserDto = new CreateUserDto();
   createUserDto.firstName = argv.firstName;
   createUserDto.lastName = argv.lastName;
-  createUserDto.phoneNumber = argv.phoneNumber;
+  createUserDto.phoneNumber = argv.phone;
   createUserDto.role = UserRole.Director;
   createUserDto.password = argv.password;
 

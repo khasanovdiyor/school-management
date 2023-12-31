@@ -1,5 +1,5 @@
 import * as bcrypt from 'bcrypt';
-import crypto from 'crypto';
+import { createHmac } from 'crypto';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
@@ -8,8 +8,8 @@ export class PasswordService {
   constructor(private readonly configService: ConfigService) {}
 
   private pepperify(str: string) {
-    const pepper = this.configService.get('auth.pepper');
-    return crypto.createHmac('sha1', pepper).update(str).digest('hex');
+    const pepper: string = this.configService.get('auth.pepper');
+    return createHmac('sha1', pepper).update(str).digest('hex');
   }
 
   hashPassword(password: string) {

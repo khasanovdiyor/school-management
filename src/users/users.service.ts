@@ -129,4 +129,24 @@ export class UsersService {
       throw new InternalServerErrorException('Internal server error');
     }
   }
+
+  async findOneByPhoneNumber(phoneNumber: string) {
+    const user = await this.repository.findOneBy({ phoneNumber });
+
+    if (!user) {
+      throw new NotFoundException(`User not found with number ${phoneNumber}`);
+    }
+
+    return user;
+  }
+
+  async removeByPhoneNumber(phoneNumber: string) {
+    await this.findOneByPhoneNumber(phoneNumber);
+
+    try {
+      await this.repository.delete({ phoneNumber });
+    } catch (err) {
+      throw new InternalServerErrorException('Internal server error');
+    }
+  }
 }

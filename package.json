@@ -23,7 +23,8 @@
     "migration:create": "npm run typeorm migration:create src/database/migrations/$npm_config_name",
     "migration:run": "npm run typeorm migration:run",
     "migration:revert": "npm run typeorm migration:revert",
-    "create:director": "node -r ts-node/register -r tsconfig-paths/register src/scripts/create-director.ts"
+    "create:director": "node -r ts-node/register -r tsconfig-paths/register src/scripts/create-director.ts",
+    "remove:director": "node -r ts-node/register -r tsconfig-paths/register src/scripts/remove-director.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

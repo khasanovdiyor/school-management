@@ -23,7 +23,7 @@ export class AuthService {
 
     const user = await this.usersRepository.findOne({
       where: { phoneNumber },
-      select: ['id', 'phoneNumber'],
+      select: ['id', 'phoneNumber', 'password'],
     });
 
     const isRightPassword = await this.passwordService.comparePasswords(
