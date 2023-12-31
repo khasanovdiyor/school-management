@@ -71,7 +71,18 @@ export class SubjectsService {
   async findSubjectsById(subjectIds: number[]) {
     const subjects = await this.subjectsRepository.find({
       where: { id: In(subjectIds) },
+      loadRelationIds: true,
     });
+
+    const notFoundSubjectIds = subjectIds.filter(
+      (id) => !subjects.map((s) => s.id).includes(id),
+    );
+
+    if (notFoundSubjectIds.length) {
+      throw new NotFoundException(
+        `Subjects with ids: ${notFoundSubjectIds.join(', ')} not found`,
+      );
+    }
 
     return subjects;
   }

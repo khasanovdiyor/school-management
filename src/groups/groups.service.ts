@@ -61,6 +61,21 @@ export class GroupsService {
     return group;
   }
 
+  async findOneGroupWithRelations(
+    id: number,
+    relations: ('subjects' | 'students')[],
+  ) {
+    const group = await this.repository.findOne({
+      where: { id },
+      relations,
+    });
+
+    if (!group) {
+      throw new NotFoundException(notFoundMessage(Group.name, id));
+    }
+    return group;
+  }
+
   async update(id: number, updateGroupDto: UpdateGroupDto) {
     const group = await this.repository.preload({
       id,
@@ -87,7 +102,18 @@ export class GroupsService {
   async addStudents(id: number, studentIds: number[]) {
     const students = await this.usersService.getStudents(studentIds);
 
-    const group = await this.findOne(id);
+    const studentsInGroup = students
+      .filter((st) => st.group?.name)
+      .map((s) => s.id);
+
+    if (studentsInGroup.length) {
+      throw new ConflictException(
+        `Students with ids: ${studentsInGroup.join(', ')} already in a group`,
+      );
+    }
+
+    const group = await this.findOneGroupWithRelations(id, ['students']);
+
     group.students = [...group.students, ...students];
 
     return this.repository.save(group);
@@ -96,8 +122,20 @@ export class GroupsService {
   async addSubjects(id: number, subjectIds: number[]) {
     const subjects = await this.subjectsService.findSubjectsById(subjectIds);
 
-    const group = await this.findOne(id);
-    group.subjects = subjects;
+    const subjectIdsInThisGroup = subjects
+      .filter((subject) => (subject.groups as unknown as number[]).includes(id))
+      .map((subject) => subject.id);
+
+    if (subjectIdsInThisGroup.length) {
+      throw new ConflictException(
+        `Subjects with ids: ${subjectIdsInThisGroup.join(
+          ', ',
+        )} already in this group`,
+      );
+    }
+
+    const group = await this.findOneGroupWithRelations(id, ['subjects']);
+    group.subjects = [...group.subjects, ...subjects];
     return this.repository.save(group);
   }
 
@@ -105,7 +143,7 @@ export class GroupsService {
     const { teacherId, subjectId } = addTeacherDto;
 
     const group = await this.repository.findOne({
-      loadRelationIds: true,
+      relations: ['subjects'],
       where: { id, subjects: { id: subjectId } },
     });
 
@@ -114,10 +152,21 @@ export class GroupsService {
       throw new BadRequestException(`This subject doesn't exist in this group`);
     }
 
-    const teacher = await this.usersService.findOne(teacherId);
+    const teacher =
+      await this.usersService.findOneTeacherWithSubjects(teacherId);
 
     if (teacher.role !== UserRole.Teacher) {
       throw new BadRequestException('Please provide a teacher');
+    }
+
+    const isThisTeacherHasThisSubject = teacher.teacherSubjects
+      .map((teacherSubject) => teacherSubject.id)
+      .includes(subjectId);
+
+    if (!isThisTeacherHasThisSubject) {
+      throw new BadRequestException(
+        `The teacher with id: ${teacherId} doesn't teach a subject with id ${subjectId}`,
+      );
     }
 
     const groupTeacherSubject = new GroupTeacherSubject();
@@ -140,8 +189,8 @@ export class GroupsService {
 
   async gradeStudentForSubject(
     groupId: number,
-    gradeStudentForSubjectDto: GradeStudentForSubjectDto,
     teacherId: number,
+    gradeStudentForSubjectDto: GradeStudentForSubjectDto,
   ) {
     const { subjectId, studentId, grade } = gradeStudentForSubjectDto;
 
@@ -172,30 +221,26 @@ export class GroupsService {
         await this.studentGradeRepository.save(newStudentGrade);
       return studentGrade;
     } catch (err) {
-      if (err.code === PgErrorCode.UniqueConstraint) {
-        throw new ConflictException(
-          `Student with id${studentId} has already been graded for subject with id ${subjectId}`,
-        );
-      }
+      this.loggerService.error(err);
+      throw new InternalServerErrorException();
     }
   }
 
-  async getAverageGradeForGivenGroupAndSubject(groupId: number, subjectId) {
+  async getAverageGradeForSubjectsInGroup(groupId: number) {
     try {
       const queryBuilder = this.studentGradeRepository
         .createQueryBuilder('grade')
         .leftJoin('grade.student', 'student')
         .leftJoin('grade.subject', 'subject')
         .where('student.group.id = :groupId', { groupId })
-        .andWhere('subject.id = :subjectId', { subjectId });
+        .groupBy('subject.id');
 
       const result = await queryBuilder
         .select(
-          'AVG(CAST(CAST(grade.grade as TEXT) as INTEGER))',
-          'averageGrade',
+          'subject.name as subject, AVG(CAST(CAST(grade.grade as TEXT) as INTEGER)) as average',
         )
-        .getRawOne();
-      return result.averageGrade ? result : { averageGrade: 0 };
+        .getRawMany();
+      return result;
     } catch (err) {
       this.loggerService.error(err);
       throw new InternalServerErrorException();

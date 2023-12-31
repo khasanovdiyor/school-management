@@ -1,19 +1,11 @@
-import {
-  Column,
-  Entity,
-  JoinTable,
-  ManyToMany,
-  OneToMany,
-  Unique,
-} from 'typeorm';
+import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm';
 import { BaseEntity } from 'src/common/entities/base.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Subject } from 'src/subjects/entities/subject.entity';
 
 @Entity()
 export class Group extends BaseEntity {
-  @Unique(['name'])
-  @Column()
+  @Column({ unique: true })
   name: string;
 
   @OneToMany(() => User, (student) => student.group)

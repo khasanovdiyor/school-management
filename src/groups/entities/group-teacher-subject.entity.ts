@@ -4,7 +4,7 @@ import { User } from 'src/users/entities/user.entity';
 
 import { Group } from './group.entity';
 
-@Unique('group-teacher-subject', ['group', 'teacher', 'subject'])
+@Unique('uniq-group-teacher-subject', ['group', 'teacher', 'subject'])
 @Entity()
 export class GroupTeacherSubject {
   @PrimaryGeneratedColumn()

@@ -44,6 +44,19 @@ export class UsersService {
     return user;
   }
 
+  async findOneTeacherWithSubjects(id: number) {
+    const user = await this.repository.findOne({
+      where: { id },
+      relations: ['teacherSubjects'],
+    });
+
+    if (!user) {
+      throw new NotFoundException(notFoundMessage(User.name, id));
+    }
+
+    return user;
+  }
+
   async update(id: number, updateUserDto: UpdateUserDto) {
     const user = await this.repository.preload({
       id,
@@ -70,7 +83,11 @@ export class UsersService {
   async getStudents(studentIds: number[]) {
     const students = await Promise.all(
       studentIds.map((id) =>
-        this.repository.findOne({ where: { id }, select: ['id', 'role'] }),
+        this.repository.findOne({
+          where: { id },
+          select: ['id', 'role'],
+          relations: ['group'],
+        }),
       ),
     );
 
@@ -80,7 +97,7 @@ export class UsersService {
 
     if (notFoundUsers.length) {
       throw new NotFoundException(
-        `Users with ids: ${notFoundUsers.join(', ')} not found`,
+        `Students with ids: ${notFoundUsers.join(', ')} not found`,
       );
     }
 
@@ -92,7 +109,7 @@ export class UsersService {
   }
 
   async addSubjectsToTeacher(teacherId: number, subjectIds: number[]) {
-    const teacher = await this.findOne(teacherId);
+    const teacher = await this.findOneTeacherWithSubjects(teacherId);
 
     if (teacher.role !== UserRole.Teacher) {
       throw new BadRequestException('Please provide a techer id');
@@ -100,7 +117,7 @@ export class UsersService {
 
     const subjects = await this.subjectsService.findSubjectsById(subjectIds);
 
-    teacher.teacherSubjects = subjects;
+    teacher.teacherSubjects = [...teacher.teacherSubjects, ...subjects];
 
     return this.repository.save(teacher);
   }
@@ -116,18 +133,23 @@ export class UsersService {
     }
   }
 
-  async getAverageGrade(studentId: number) {
+  async getAverageGrades(studentId: number) {
     await this.getStudents([studentId]);
 
-    try {
-      const averageGrade = await this.studentGradeRepository.average('grade', {
-        student: { id: studentId },
-      });
+    const queryBuilder = await this.studentGradeRepository
+      .createQueryBuilder('grade')
+      .leftJoin('grade.student', 'student')
+      .leftJoin('grade.subject', 'subject')
+      .where('student.id = :studentId', { studentId })
+      .groupBy('subject.id');
 
-      return averageGrade;
-    } catch (err) {
-      throw new InternalServerErrorException();
-    }
+    const results = await queryBuilder
+      .select(
+        'subject.name as subject, AVG(CAST(CAST(grade.grade AS text) AS INTEGER)) as average',
+      )
+      .getRawMany();
+
+    return results;
   }
 
   async findOneByPhoneNumber(phoneNumber: string) {

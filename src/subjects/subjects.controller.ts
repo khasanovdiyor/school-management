@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   UseGuards,
@@ -68,15 +69,18 @@ export class SubjectsController {
   @ApiFoundResponse({ description: 'Returns subject when found' })
   @ApiNotFoundResponse({ description: 'Returns NotFound error when not found' })
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.subjectsService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.subjectsService.findOne(id);
   }
 
   @ApiOperation({ summary: 'Update a group with id as a director' })
   @ApiOkResponse({ description: 'Returns updated subject' })
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSubjectDto: UpdateSubjectDto) {
-    return this.subjectsService.update(+id, updateSubjectDto);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateSubjectDto: UpdateSubjectDto,
+  ) {
+    return this.subjectsService.update(id, updateSubjectDto);
   }
 
   @ApiOperation({ summary: 'Remove a group with id as a director' })
@@ -85,7 +89,7 @@ export class SubjectsController {
   })
   @ApiNotFoundResponse({ description: 'Returns NotFound error when not found' })
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.subjectsService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.subjectsService.remove(id);
   }
 }

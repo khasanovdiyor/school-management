@@ -10,7 +10,6 @@ import { PgErrorCode } from 'src/common/enums/pg-error.enum';
 
 import yargs = require('yargs');
 async function bootstrap() {
-  console.log(process.argv);
   const argv = yargs(hideBin(process.argv))
     .usage(
       `Usage: npm run create:director -- --firstName [string] --lastName [string] --phoneNumber [string] --password [string]`,

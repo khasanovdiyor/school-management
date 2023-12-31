@@ -24,10 +24,11 @@ export class UsersRepository extends Repository<User> {
 
     const hashedPassword = await this.passwordService.hashPassword(password);
 
-    const user = this.create({ ...createUserDto, password: hashedPassword });
+    const newUser = this.create({ ...createUserDto, password: hashedPassword });
 
     try {
-      return this.save(user);
+      const user = await this.save(newUser);
+      return user;
     } catch (err) {
       if (err.code === PgErrorCode.UniqueConstraint) {
         throw new ConflictException(

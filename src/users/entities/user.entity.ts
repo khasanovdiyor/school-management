@@ -5,7 +5,6 @@ import {
   ManyToMany,
   ManyToOne,
   OneToMany,
-  Unique,
 } from 'typeorm';
 import { BaseEntity } from 'src/common/entities/base.entity';
 import { Group } from 'src/groups/entities/group.entity';
@@ -22,8 +21,7 @@ export class User extends BaseEntity {
   @Column()
   lastName: string;
 
-  @Unique(['password'])
-  @Column()
+  @Column({ unique: true })
   phoneNumber: string;
 
   @Column({ type: 'enum', enum: UserRole })
@@ -35,8 +33,18 @@ export class User extends BaseEntity {
   @ManyToOne(() => Group, (group) => group.students)
   group: Group;
 
-  @ManyToMany(() => Subject)
-  @JoinTable()
+  @ManyToMany(() => Subject, (subject) => subject.teachers)
+  @JoinTable({
+    name: 'teacher-subjects-subject',
+    joinColumn: {
+      name: 'teacher_id',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'subject_id',
+      referencedColumnName: 'id',
+    },
+  })
   teacherSubjects: Subject[];
 
   @OneToMany(() => StudentGrade, (grade) => grade.student)

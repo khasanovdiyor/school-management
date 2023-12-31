@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   UseGuards,
@@ -76,15 +77,18 @@ export class GroupsController {
     description: 'Returns a Notfound error when group with given it not found',
   })
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.groupsService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.groupsService.findOne(id);
   }
 
   @ApiOperation({ summary: 'Update a group as a director' })
   @ApiOkResponse({ description: 'Returns updated group' })
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateGroupDto: UpdateGroupDto) {
-    return this.groupsService.update(+id, updateGroupDto);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateGroupDto: UpdateGroupDto,
+  ) {
+    return this.groupsService.update(id, updateGroupDto);
   }
 
   @ApiOperation({ summary: 'Delete a group as a director' })
@@ -92,8 +96,8 @@ export class GroupsController {
     description: 'Returns no content response when successfull',
   })
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.groupsService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.groupsService.remove(id);
   }
 
   @ApiOperation({ summary: 'Add multiple students to a group as a director' })
@@ -105,12 +109,12 @@ export class GroupsController {
     description:
       'Returns BadRequest error when any of the given students are not students',
   })
-  @Post(':id/addStudents')
+  @Post(':id/students')
   addStudentsToAGroup(
-    @Param('id') groupId: string,
+    @Param('id', ParseIntPipe) groupId: number,
     @Body() addStudentsDto: AddEntitiesDto,
   ) {
-    return this.groupsService.addStudents(+groupId, addStudentsDto.entityIds);
+    return this.groupsService.addStudents(groupId, addStudentsDto.entityIds);
   }
 
   @ApiOperation({ summary: 'Add subjects to group as a director' })
@@ -118,12 +122,12 @@ export class GroupsController {
   @ApiNotFoundResponse({
     description: 'Returns NotFound error when group is not found',
   })
-  @Post(':id/addSubjects')
+  @Post(':id/subjects')
   addSubjectsToAGroup(
-    @Param('id') groupId: string,
+    @Param('id', ParseIntPipe) groupId: number,
     @Body() addSubjectsDto: AddEntitiesDto,
   ) {
-    return this.groupsService.addSubjects(+groupId, addSubjectsDto.entityIds);
+    return this.groupsService.addSubjects(groupId, addSubjectsDto.entityIds);
   }
 
   @ApiOperation({
@@ -133,9 +137,9 @@ export class GroupsController {
   @ApiNotFoundResponse({
     description: 'Returns NotFound error when group is not found',
   })
-  @Post(':id/addTeacherForSubject')
+  @Post(':id/teachers')
   addTeacherForSubject(
-    @Param('id') groupId: string,
+    @Param('id', ParseIntPipe) groupId: number,
     @Body() addTeacherDto: AddTeacherDto,
   ) {
     return this.groupsService.addTeacherForSubject(+groupId, addTeacherDto);
@@ -151,13 +155,13 @@ export class GroupsController {
   @Post(':id/grade')
   gradeStudentForSubject(
     @CurrentUser('id') teacherId: number,
-    @Param() groupId: string,
-    gradeStudentForSubjectDto: GradeStudentForSubjectDto,
+    @Param('id', ParseIntPipe) groupId: number,
+    @Body() gradeStudentForSubjectDto: GradeStudentForSubjectDto,
   ) {
     return this.groupsService.gradeStudentForSubject(
-      +groupId,
-      gradeStudentForSubjectDto,
+      groupId,
       teacherId,
+      gradeStudentForSubjectDto,
     );
   }
 
@@ -168,14 +172,10 @@ export class GroupsController {
   @ApiOkResponse({
     description: 'Returns average grade for give group and subject',
   })
-  @Get(':groupId/subjects/:subjectId/average')
+  @Get(':id/subjects/average')
   getAverageGradeForSpecificGroupAndSubject(
-    @Param('groupId') groupId: string,
-    @Param('subjectId') subjectId: string,
+    @Param('id', ParseIntPipe) groupId: number,
   ) {
-    return this.groupsService.getAverageGradeForGivenGroupAndSubject(
-      +groupId,
-      +subjectId,
-    );
+    return this.groupsService.getAverageGradeForSubjectsInGroup(groupId);
   }
 }

@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   UseGuards,
@@ -71,15 +72,18 @@ export class UsersController {
   @ApiFoundResponse({ description: 'Returns user when found' })
   @ApiNotFoundResponse({ description: 'Returns NotFound error when not found' })
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.findOne(id);
   }
 
   @ApiOperation({ summary: 'Update a user with id as a director' })
   @ApiOkResponse({ description: 'Returns updated user' })
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    return this.usersService.update(id, updateUserDto);
   }
 
   @ApiOperation({ summary: 'Delete a user with id as a director' })
@@ -88,18 +92,18 @@ export class UsersController {
   })
   @ApiNotFoundResponse({ description: 'Returns NotFound error when not found' })
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.remove(id);
   }
 
   @ApiOperation({ summary: 'Add subjects to a teacher as a director' })
-  @Post(':id/addSubjectsToTeacher')
+  @Post(':id/subjects')
   addSubjectsToTeacher(
-    @Param('id') teacherId: number,
+    @Param('id', ParseIntPipe) teacherId: number,
     @Body() addsubjectsDto: AddEntitiesDto,
   ) {
     return this.usersService.addSubjectsToTeacher(
-      +teacherId,
+      teacherId,
       addsubjectsDto.entityIds,
     );
   }
@@ -111,8 +115,8 @@ export class UsersController {
   @ApiNotFoundResponse({
     description: 'Returns NotFound error when student is not found',
   })
-  @Get(':id/averageGrade')
-  getAverageGradeOfStudent(@Param(':id') studentId: string) {
-    return this.usersService.getAverageGrade(+studentId);
+  @Get(':id/subjects/average')
+  getAverageGradeOfStudent(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.getAverageGrades(id);
   }
 }

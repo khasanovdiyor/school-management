@@ -33,7 +33,6 @@ async function bootstrap() {
       logger.log('Director is removed');
     }
   } catch (err) {
-    console.log(err);
     logger.error(err);
   } finally {
     await app.close();
