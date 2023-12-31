@@ -1,9 +1,9 @@
-import * as bcrypt from 'bcrypt';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { UsersRepository } from 'src/users/users.repository';
 import { User } from 'src/users/entities/user.entity';
+import { PasswordService } from 'src/users/password.service';
 
 import { LoginDto } from './dto/login.dto';
 import { JwtAccessPayloadInterface } from './interfaces/jwt-access-payload.interface';
@@ -15,6 +15,7 @@ export class AuthService {
     private readonly usersRepository: UsersRepository,
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
+    private readonly passwordService: PasswordService,
   ) {}
 
   async login(loginDto: LoginDto) {
@@ -25,7 +26,11 @@ export class AuthService {
       select: ['id', 'phoneNumber'],
     });
 
-    if (user && (await bcrypt.compare(password, user.password))) {
+    const isRightPassword = await this.passwordService.comparePasswords(
+      password,
+      user.password,
+    );
+    if (user && isRightPassword) {
       const accessTokenPayload: JwtAccessPayloadInterface = {
         phoneNumber,
         sub: user.id.toString(),

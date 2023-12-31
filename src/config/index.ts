@@ -2,7 +2,7 @@ import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConne
 
 import { dbConfig } from './database';
 
-interface iConfig {
+interface ConfigInterface {
   env: string;
   port: number;
   database: PostgresConnectionOptions;
@@ -16,10 +16,14 @@ interface iConfig {
       expiresIn: string;
     };
   };
+  auth: {
+    saltRounds: number;
+    pepper: string;
+  };
   isDevEnv: boolean;
 }
 
-export default (): Partial<iConfig> => ({
+export default (): Partial<ConfigInterface> => ({
   env: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT, 10) || 3000,
   jwt: {
@@ -31,6 +35,10 @@ export default (): Partial<iConfig> => ({
       secret: process.env.JWT_REFRESH_SECRET,
       expiresIn: process.env.JWT_REFRESH_EXPIRES_IN,
     },
+  },
+  auth: {
+    saltRounds: 10,
+    pepper: process.env.PEPPER,
   },
   database: dbConfig(),
   get isDevEnv() {

@@ -7,6 +7,7 @@ import { DatabaseModule } from './database/database.module';
 import { LoggerModule } from './common/logger/logger.module';
 import { UsersModule } from './users/users.module';
 import { GroupsModule } from './groups/groups.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -15,12 +16,11 @@ import { GroupsModule } from './groups/groups.module';
       load: [config],
     }),
     LoggerModule,
+    AuthModule,
     DatabaseModule,
     SubjectsModule,
     UsersModule,
     GroupsModule,
   ],
-  controllers: [],
-  providers: [],
 })
 export class AppModule {}
