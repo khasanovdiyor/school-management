@@ -12,6 +12,6 @@ export class Subject extends BaseEntity {
   @OneToMany(() => StudentGrade, (studentGrade) => studentGrade.subject)
   studentGrades: StudentGrade[];
 
-  @ManyToMany(() => Group)
+  @ManyToMany(() => Group, (group) => group.subjects)
   groups: Group[];
 }

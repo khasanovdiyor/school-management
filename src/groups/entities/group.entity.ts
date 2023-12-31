@@ -19,7 +19,17 @@ export class Group extends BaseEntity {
   @OneToMany(() => User, (student) => student.group)
   students: User[];
 
-  @ManyToMany(() => Subject)
-  @JoinTable()
+  @ManyToMany(() => Subject, (subject) => subject.groups)
+  @JoinTable({
+    name: 'group_subjects_subject',
+    joinColumn: {
+      name: 'group_id',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'subject_id',
+      referencedColumnName: 'id',
+    },
+  })
   subjects: Subject[];
 }

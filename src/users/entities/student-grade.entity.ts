@@ -15,6 +15,6 @@ export class StudentGrade {
   @ManyToOne(() => User, (user) => user.studentGrades)
   student: User;
 
-  @ManyToOne(() => Subject)
+  @ManyToOne(() => Subject, (subject) => subject.studentGrades)
   subject: Subject;
 }

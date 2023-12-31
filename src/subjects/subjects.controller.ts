@@ -39,9 +39,9 @@ import { UpdateSubjectDto } from './dto/update-subject.dto';
   description:
     'Returns Forbidden error when student or teacher tries to access',
 })
-@UseGuards(JwtAccessGuard)
 @UseGuards(RolesGuard)
 @Roles(UserRole.Director)
+@UseGuards(JwtAccessGuard)
 @Controller({ path: 'subjects', version: '1' })
 export class SubjectsController {
   constructor(private readonly subjectsService: SubjectsService) {}

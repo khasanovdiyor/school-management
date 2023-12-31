@@ -63,7 +63,7 @@ export class UsersService {
     try {
       await this.repository.delete(id);
     } catch (err) {
-      throw new InternalServerErrorException('Internal server error');
+      throw new InternalServerErrorException();
     }
   }
 
@@ -126,12 +126,15 @@ export class UsersService {
 
       return averageGrade;
     } catch (err) {
-      throw new InternalServerErrorException('Internal server error');
+      throw new InternalServerErrorException();
     }
   }
 
   async findOneByPhoneNumber(phoneNumber: string) {
-    const user = await this.repository.findOneBy({ phoneNumber });
+    const user = await this.repository.findOne({
+      where: { phoneNumber },
+      select: ['id', 'phoneNumber', 'password'],
+    });
 
     if (!user) {
       throw new NotFoundException(`User not found with number ${phoneNumber}`);
@@ -146,7 +149,7 @@ export class UsersService {
     try {
       await this.repository.delete({ phoneNumber });
     } catch (err) {
-      throw new InternalServerErrorException('Internal server error');
+      throw new InternalServerErrorException();
     }
   }
 }

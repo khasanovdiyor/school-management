@@ -13,6 +13,7 @@ import { UsersService } from 'src/users/users.service';
 import { SubjectsService } from 'src/subjects/subjects.service';
 import { UserRole } from 'src/users/enums/user-role.enum';
 import { StudentGrade } from 'src/users/entities/student-grade.entity';
+import { LoggerService } from 'src/common/logger/logger.service';
 
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
@@ -32,6 +33,7 @@ export class GroupsService {
     private readonly studentGradeRepository: Repository<StudentGrade>,
     private readonly usersService: UsersService,
     private readonly subjectsService: SubjectsService,
+    private readonly loggerService: LoggerService,
   ) {}
 
   async create(createGroupDto: CreateGroupDto) {
@@ -78,7 +80,7 @@ export class GroupsService {
     try {
       await this.repository.delete(id);
     } catch (err) {
-      throw new InternalServerErrorException('Internal Server Error');
+      throw new InternalServerErrorException();
     }
   }
 
@@ -180,12 +182,23 @@ export class GroupsService {
 
   async getAverageGradeForGivenGroupAndSubject(groupId: number, subjectId) {
     try {
-      const averageGrade = await this.studentGradeRepository.average('grade', {
-        subject: { id: subjectId, groups: { id: groupId } },
-      });
-      return averageGrade;
+      const queryBuilder = this.studentGradeRepository
+        .createQueryBuilder('grade')
+        .leftJoin('grade.student', 'student')
+        .leftJoin('grade.subject', 'subject')
+        .where('student.group.id = :groupId', { groupId })
+        .andWhere('subject.id = :subjectId', { subjectId });
+
+      const result = await queryBuilder
+        .select(
+          'AVG(CAST(CAST(grade.grade as TEXT) as INTEGER))',
+          'averageGrade',
+        )
+        .getRawOne();
+      return result.averageGrade ? result : { averageGrade: 0 };
     } catch (err) {
-      throw new InternalServerErrorException('Internal server error');
+      this.loggerService.error(err);
+      throw new InternalServerErrorException();
     }
   }
 }

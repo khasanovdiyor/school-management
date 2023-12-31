@@ -34,7 +34,7 @@ export class UsersRepository extends Repository<User> {
           'User with the same phone number already exists',
         );
       }
-      throw new InternalServerErrorException('Internal server error');
+      throw new InternalServerErrorException();
     }
   }
 }

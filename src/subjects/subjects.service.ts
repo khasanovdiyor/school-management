@@ -64,7 +64,7 @@ export class SubjectsService {
     try {
       await this.subjectsRepository.delete(id);
     } catch (err) {
-      throw new InternalServerErrorException('Internal Server Error');
+      throw new InternalServerErrorException();
     }
   }
 

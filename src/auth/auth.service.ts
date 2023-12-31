@@ -1,9 +1,9 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { UsersRepository } from 'src/users/users.repository';
 import { User } from 'src/users/entities/user.entity';
 import { PasswordService } from 'src/users/password.service';
+import { UsersService } from 'src/users/users.service';
 
 import { LoginDto } from './dto/login.dto';
 import { JwtAccessPayloadInterface } from './interfaces/jwt-access-payload.interface';
@@ -12,7 +12,7 @@ import { JwtRefreshPayloadInterface } from './interfaces/jwt-refresh-payload.int
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly usersRepository: UsersRepository,
+    private readonly usersService: UsersService,
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
     private readonly passwordService: PasswordService,
@@ -21,34 +21,31 @@ export class AuthService {
   async login(loginDto: LoginDto) {
     const { phoneNumber, password } = loginDto;
 
-    const user = await this.usersRepository.findOne({
-      where: { phoneNumber },
-      select: ['id', 'phoneNumber', 'password'],
-    });
+    const user = await this.usersService.findOneByPhoneNumber(phoneNumber);
 
     const isRightPassword = await this.passwordService.comparePasswords(
       password,
       user.password,
     );
-    if (user && isRightPassword) {
-      const accessTokenPayload: JwtAccessPayloadInterface = {
-        phoneNumber,
-        sub: user.id.toString(),
-      };
-
-      const refreshTokenPayload: JwtRefreshPayloadInterface = {
-        sub: user.id.toString(),
-      };
-
-      const [accessToken, refreshToken] = await Promise.all([
-        this.getTokenForType('access', accessTokenPayload),
-        this.getTokenForType('refresh', refreshTokenPayload),
-      ]);
-
-      return { accessToken, refreshToken };
+    if (!isRightPassword) {
+      throw new UnauthorizedException('Please check your login credentials');
     }
 
-    throw new UnauthorizedException('Please check your login credentials');
+    const accessTokenPayload: JwtAccessPayloadInterface = {
+      phoneNumber,
+      sub: user.id.toString(),
+    };
+
+    const refreshTokenPayload: JwtRefreshPayloadInterface = {
+      sub: user.id.toString(),
+    };
+
+    const [accessToken, refreshToken] = await Promise.all([
+      this.getTokenForType('access', accessTokenPayload),
+      this.getTokenForType('refresh', refreshTokenPayload),
+    ]);
+
+    return { accessToken, refreshToken };
   }
 
   async refreshToken(user: User) {

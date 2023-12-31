@@ -43,9 +43,9 @@ import { GradeStudentForSubjectDto } from './dto/grade-student-for-subject.dto';
 @ApiForbiddenResponse({
   description: 'Return Forbidden error when student or teacher tries to access',
 })
-@UseGuards(JwtAccessGuard)
 @UseGuards(RolesGuard)
 @Roles(UserRole.Director)
+@UseGuards(JwtAccessGuard)
 @Controller({ path: 'groups', version: '1' })
 export class GroupsController {
   constructor(private readonly groupsService: GroupsService) {}
