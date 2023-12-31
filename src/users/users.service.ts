@@ -7,16 +7,21 @@ import {
 } from '@nestjs/common';
 import { notFoundMessage } from 'src/common/constants/notFoundMessage';
 import { SubjectsService } from 'src/subjects/subjects.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersRepository } from './users.repository';
 import { User } from './entities/user.entity';
 import { UserRole } from './enums/user-role.enum';
+import { StudentGrade } from './entities/student-grade.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
+    @InjectRepository(StudentGrade)
+    private readonly studentGradeRepository: Repository<StudentGrade>,
     private readonly repository: UsersRepository,
     private readonly subjectsService: SubjectsService,
   ) {}
@@ -98,5 +103,30 @@ export class UsersService {
     teacher.teacherSubjects = subjects;
 
     return this.repository.save(teacher);
+  }
+
+  async getTeacherWithSubject(teacherId: number, subjectId: number) {
+    const teacher = await this.repository.findOne({
+      relations: ['teacherSubjects'],
+      where: { id: teacherId, teacherSubjects: { id: subjectId } },
+    });
+
+    if (!teacher.teacherSubjects.length) {
+      throw new BadRequestException(`You don't teacher this subject`);
+    }
+  }
+
+  async getAverageGrade(studentId: number) {
+    await this.getStudents([studentId]);
+
+    try {
+      const averageGrade = await this.studentGradeRepository.average('grade', {
+        student: { id: studentId },
+      });
+
+      return averageGrade;
+    } catch (err) {
+      throw new InternalServerErrorException('Internal server error');
+    }
   }
 }

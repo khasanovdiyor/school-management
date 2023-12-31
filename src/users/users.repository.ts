@@ -1,22 +1,28 @@
-import * as bcrypt from 'bcrypt';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import {
   ConflictException,
+  Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
 import { PgErrorCode } from 'src/common/enums/pg-error.enum';
-import { CustomRepository } from 'src/database/custom-repository.decorator';
 
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import { PasswordService } from './password.service';
 
-@CustomRepository(User)
+@Injectable()
 export class UsersRepository extends Repository<User> {
+  constructor(
+    private readonly dataSource: DataSource,
+    private readonly passwordService: PasswordService,
+  ) {
+    super(User, dataSource.createEntityManager());
+  }
+
   async createUser(createUserDto: CreateUserDto) {
     const { password } = createUserDto;
 
-    const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await this.passwordService.hashPassword(password);
 
     const user = this.create({ ...createUserDto, password: hashedPassword });
 

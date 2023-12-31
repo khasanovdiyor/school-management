@@ -11,6 +11,7 @@ import {
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { JwtAccessGuard } from 'src/auth/guards/jwt-access.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { AddEntitiesDto } from 'src/common/entities/add-entities.dto';
 
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -47,5 +48,21 @@ export class UsersController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.usersService.remove(+id);
+  }
+
+  @Post(':id/addSubjectsToTeacher')
+  addSubjectsToTeacher(
+    @Param('id') teacherId: number,
+    @Body() addsubjectsDto: AddEntitiesDto,
+  ) {
+    return this.usersService.addSubjectsToTeacher(
+      +teacherId,
+      addsubjectsDto.entityIds,
+    );
+  }
+
+  @Get(':id/averageGrade')
+  getAverageGradeOfStudent(@Param(':id') studentId: string) {
+    return this.usersService.getAverageGrade(+studentId);
   }
 }

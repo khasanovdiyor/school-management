@@ -12,7 +12,7 @@ import { Group } from 'src/groups/entities/group.entity';
 import { Subject } from 'src/subjects/entities/subject.entity';
 
 import { UserRole } from '../enums/user-role.enum';
-import { StudentGrade } from './student-subject.entity';
+import { StudentGrade } from './student-grade.entity';
 
 @Entity()
 export class User extends BaseEntity {
